@@ -2,35 +2,19 @@
 
 Name: %{?scl_prefix}elfutils
 Summary: A collection of utilities and DSOs to handle compiled objects
-Version: 0.163
-%global baserelease 2
+Version: 0.166
+%global baserelease 1
 URL: https://fedorahosted.org/elfutils/
 %global source_url http://fedorahosted.org/releases/e/l/elfutils/%{version}/
 License: GPLv3+ and (GPLv2+ or LGPLv3+)
 Group: Development/Tools
 
-%if %{?_with_compat:1}%{!?_with_compat:0}
-%global compat 1
-%else
-%global compat 0
-%endif
+Release: %{baserelease}%{?dist}
 
-%global portability             %{compat}
-%global scanf_has_m             !%{compat}
+%global provide_yama_scope	0
 
-%if 0%{?rhel}
-%global portability             (%rhel < 6)
-%global scanf_has_m             (%rhel >= 6)
-%endif
 %if 0%{?fedora}
-%global portability             (%fedora < 9)
-%global scanf_has_m             (%fedora >= 8)
-%endif
-
-%if %{compat} || %{!?rhel:6}%{?rhel} < 6
-%global nocheck true
-%else
-%global nocheck false
+%global provide_yama_scope	(%fedora >= 22)
 %endif
 
 %global depsuffix %{?_isa}%{!?_isa:-%{_arch}}
@@ -47,38 +31,20 @@ Source5: libelf.a
 Source6: libdw.a
 Source7: libasm.a
 
-Patch1: %{?source_url}elfutils-portability-%{version}.patch
-
-Patch2: elfutils-0.163-unstrip-shf_info_link.patch
+# Patches
 
 # DTS specific patches.
-Patch100: elfutils-0.163-dts.patch
-
-%if !%{compat}
-Release: %{baserelease}%{?dist}
-%else
-Release: 0.%{baserelease}
-%endif
+Patch100: elfutils-0.166-dts.patch
 
 Requires: %{?scl_prefix}elfutils-libelf%{depsuffix} = %{version}-%{release}
 Requires: %{?scl_prefix}elfutils-libs%{depsuffix} = %{version}-%{release}
-
-%if %{!?rhel:6}%{?rhel} < 6 || %{!?fedora:9}%{?fedora} < 10
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-%endif
 
 BuildRequires: autoconf automake
 BuildRequires: gettext
 BuildRequires: bison >= 1.875
 BuildRequires: flex >= 2.5.4a
 BuildRequires: bzip2
-%if !%{compat}
-BuildRequires: gcc >= 3.4
-# Need <byteswap.h> that gives unsigned bswap_16 etc.
-BuildRequires: glibc-headers >= 2.3.4-11
-%else
-BuildRequires: gcc >= 3.2
-%endif
+BuildRequires: gcc >= 4.4
 
 BuildRequires: zlib-devel >= 1.2.2.3
 BuildRequires: bzip2-devel
@@ -94,7 +60,8 @@ Elfutils is a collection of utilities, including stack (to show
 backtraces), nm (for listing symbols from object files), size
 (for listing the section sizes of an object or archive file),
 strip (for discarding symbols), readelf (to see the raw ELF file
-structures), and elflint (to check for well-formed ELF files).
+structures), elflint (to check for well-formed ELF files) and
+elfcompress (to compress or decompress ELF sections).
 
 
 %package libs
@@ -105,6 +72,9 @@ License: GPLv2+ or LGPLv3+
 Provides: %{?scl_prefix}elfutils-libs%{depsuffix} = %{version}-%{release}
 %endif
 Requires: %{?scl_prefix}elfutils-libelf%{depsuffix} = %{version}-%{release}
+%if %{provide_yama_scope}
+Requires: default-yama-scope
+%endif
 
 %description libs
 The elfutils-libs package contains libraries which implement DWARF, ELF,
@@ -159,26 +129,30 @@ applications for handling compiled objects.  libelf allows you to
 access the internals of the ELF object file format, so you can see the
 different sections of an ELF file.
 
+%if %{provide_yama_scope}
+%package default-yama-scope
+Summary: Default yama attach scope sysctl setting
+Group: Development/Tools
+License: GPLv2+ or LGPLv3+
+Provides: default-yama-scope
+BuildArch: noarch
+# For the sysctl_apply macro
+BuildRequires: systemd >= 215
+
+%description default-yama-scope
+Yama sysctl setting to enable default attach scope settings
+enabling programs to use ptrace attach, access to
+/proc/PID/{mem,personality,stack,syscall}, and the syscalls
+process_vm_readv and process_vm_writev which are used for
+interprocess services, communication and introspection
+(like synchronisation, signaling, debugging, tracing and
+profiling) of processes.
+%endif
+
 %prep
 %setup -q -n elfutils-%{version}
 
-: 'compat=%compat'
-: 'portability=%portability'
-: 'scanf_has_m=%scanf_has_m'
-
-%if %{portability}
-%patch1 -p1 -b .portability
-sleep 1
-find . \( -name Makefile.in -o -name aclocal.m4 \) -print | xargs touch
-sleep 1
-find . \( -name configure -o -name config.h.in \) -print | xargs touch
-%else
-%if !%{scanf_has_m}
-sed -i.scanf-m -e 's/%m/%a/g' src/addr2line.c tests/line2addr.c
-%endif
-%endif
-
-%patch2 -p1 -b .shf_info_link
+# Apply patches
 
 # DTS specific patches
 %patch100 -p1 -b .dts
@@ -194,21 +168,10 @@ find . -name \*.sh ! -perm -0100 -print | xargs chmod +x
 # But add -Wformat explicitly for use with -Werror=format-security which
 # doesn't work without -Wformat (enabled by -Wall).
 RPM_OPT_FLAGS="${RPM_OPT_FLAGS/-Wall/}"
-%if !%{compat}
 RPM_OPT_FLAGS="${RPM_OPT_FLAGS} -Wformat"
-%endif
-
-%if %{compat}
-# Some older glibc headers can run afoul of -Werror all by themselves.
-# Disabling the fancy inlines avoids those problems.
-RPM_OPT_FLAGS="$RPM_OPT_FLAGS -D__NO_INLINE__"
-COMPAT_CONFIG_FLAGS="--disable-werror"
-%else
-COMPAT_CONFIG_FLAGS=""
-%endif
 
 trap 'cat config.log' EXIT
-%configure $COMPAT_CONFIG_FLAGS CFLAGS="$RPM_OPT_FLAGS -fexceptions"
+%configure CFLAGS="$RPM_OPT_FLAGS -fexceptions"
 trap '' EXIT
 
 # Due to static bits, our dependencies are more complex than in plain
@@ -251,6 +214,10 @@ install -p -m 644 %{SOURCE2} %{SOURCE3} %{SOURCE4} \
 
 %find_lang elfutils
 
+%if %{provide_yama_scope}
+install -Dm0644 config/10-default-yama-scope.conf ${RPM_BUILD_ROOT}%{_sysctldir}/10-default-yama-scope.conf
+%endif
+
 %check
 make -s %{?_smp_mflags} check || (cat tests/test-suite.log; %{nocheck})
 
@@ -264,6 +231,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %post libelf -p /sbin/ldconfig
 
 %postun libelf -p /sbin/ldconfig
+
+%if %{provide_yama_scope}
+%post default-yama-scope
+%sysctl_apply 10-default-yama-scope.conf
+%endif
 
 %files
 %defattr(-,root,root)
@@ -286,6 +258,7 @@ rm -rf ${RPM_BUILD_ROOT}
 #%%{_bindir}/eu-ld
 %{_bindir}/eu-unstrip
 %{_bindir}/eu-make-debug-archive
+%{_bindir}/eu-elfcompress
 
 %files libs
 %defattr(-,root,root)
@@ -319,6 +292,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_libdir}/libdw.ar
 %{_libdir}/libebl_static_pic.ar
 %{_libdir}/libcpu_static_pic.ar
+%{_libdir}/pkgconfig/libdw.pc
 
 %files -f elfutils.lang libelf
 %defattr(-,root,root)
@@ -335,8 +309,33 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_libdir}/libelf.so
 %{_libdir}/libelf.a
 %{_libdir}/libelf.ar
+%{_libdir}/pkgconfig/libelf.pc
+
+%if %{provide_yama_scope}
+%files default-yama-scope
+%defattr(-,root,root)
+%config(noreplace) %{_sysctldir}/10-default-yama-scope.conf
+%endif
 
 %changelog
+* Thu Mar 31 2016 Mark Wielaard <mjw@redhat.com> - 0.166-1
+- Update to elfutils 0.166 (#1322412)
+  Drop upstreamed patches:
+  - elfutils-0.165-elf-libelf.patch
+  - elfutils-0.165-nobitsalign-strip.patch
+
+* Wed Feb 24 2016 Mark Wielaard <mjw@redhat.com> - 0.165-7
+- Rebuilt against new buildroot.
+
+* Thu Feb 04 2016 Mark Wielaard <mjw@redhat.com> - 0.165-4
+- Add elfutils-0.165-nobitsalign-strip.patch (#1304870)
+
+* Fri Jan 29 2016 Mark Wielaard <mjw@redhat.com> - 0.165-3
+- Add INPUT(-lz) to libelf.so linker script.
+
+* Fri Jan 15 2016 Mark Wielaard <mjw@redhat.com> - 0.165-2
+- Update to 0.165.
+
 * Mon Aug 03 2015 Mark Wielaard <mjw@redhat.com> - 0.163-2
 - Add elfutils-0.163-unstrip-shf_info_link.patch (#1246390)
 

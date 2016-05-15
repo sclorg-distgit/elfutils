@@ -1,5 +1,5 @@
 diff --git a/backends/Makefile.am b/backends/Makefile.am
-index 21d7bd2..35156b2 100644
+index b16f948..695694a 100644
 --- a/backends/Makefile.am
 +++ b/backends/Makefile.am
 @@ -40,11 +40,37 @@ libebl_pic = libebl_i386_pic.a libebl_sh_pic.a libebl_x86_64_pic.a    \
@@ -41,7 +41,7 @@ index 21d7bd2..35156b2 100644
  	    i386_retval.c i386_regs.c i386_auxv.c i386_syscall.c \
  	    i386_initreg.c
 diff --git a/libasm/Makefile.am b/libasm/Makefile.am
-index 6ea2a8e..0ac4ac6 100644
+index a4bf293..64973d1 100644
 --- a/libasm/Makefile.am
 +++ b/libasm/Makefile.am
 @@ -38,6 +38,7 @@ noinst_LIBRARIES = libasm_pic.a
@@ -53,7 +53,7 @@ index 6ea2a8e..0ac4ac6 100644
  		   asm_getelf.c asm_newscn.c asm_newscn_ingrp.c \
  		   asm_newsubscn.c asm_newsym.c asm_newcomsym.c \
 diff --git a/libcpu/Makefile.am b/libcpu/Makefile.am
-index 3beccf3..1d845e4 100644
+index f0caaea..4dd2fb4 100644
 --- a/libcpu/Makefile.am
 +++ b/libcpu/Makefile.am
 @@ -36,9 +36,11 @@ LEX_OUTPUT_ROOT = lex.$(<F:lex.l=)
@@ -69,7 +69,7 @@ index 3beccf3..1d845e4 100644
  i386_gendis_SOURCES = i386_gendis.c i386_lex.l i386_parse.y
  
 diff --git a/libdw/Makefile.am b/libdw/Makefile.am
-index 2299b2f..8246132 100644
+index 082d96c..7008c0d 100644
 --- a/libdw/Makefile.am
 +++ b/libdw/Makefile.am
 @@ -35,12 +35,13 @@ AM_CPPFLAGS += -I$(srcdir)/../libelf
@@ -124,7 +124,7 @@ index 2299b2f..8246132 100644
  # The rpath is necessary for libebl because its $ORIGIN use will
  # not fly in a setuid executable that links in libdw.
 diff --git a/libdwelf/Makefile.am b/libdwelf/Makefile.am
-index cd4b7dd..4f3727c 100644
+index 4de4b2e..44d866a 100644
 --- a/libdwelf/Makefile.am
 +++ b/libdwelf/Makefile.am
 @@ -39,6 +39,7 @@ noinst_LIBRARIES = libdwelf.a libdwelf_pic.a
@@ -133,10 +133,10 @@ index cd4b7dd..4f3727c 100644
  
 +libdwelf_a_CFLAGS = -fpic -fvisibility=hidden $(AM_CFLAGS)
  libdwelf_a_SOURCES = dwelf_elf_gnu_debuglink.c dwelf_dwarf_gnu_debugaltlink.c \
- 	dwelf_elf_gnu_build_id.c
+ 		     dwelf_elf_gnu_build_id.c dwelf_scn_gnu_compressed_size.c
  
 diff --git a/libdwfl/Makefile.am b/libdwfl/Makefile.am
-index 72c980b..705bd7b 100644
+index 89ca92e..a0eeea5 100644
 --- a/libdwfl/Makefile.am
 +++ b/libdwfl/Makefile.am
 @@ -39,6 +39,7 @@ noinst_LIBRARIES += libdwfl_pic.a
@@ -148,7 +148,7 @@ index 72c980b..705bd7b 100644
  		    dwfl_module.c dwfl_report_elf.c relocate.c \
  		    dwfl_module_build_id.c dwfl_module_report_build_id.c \
 diff --git a/libebl/Makefile.am b/libebl/Makefile.am
-index ec4477b..2e2bf83 100644
+index 6b41a3e..300d26a 100644
 --- a/libebl/Makefile.am
 +++ b/libebl/Makefile.am
 @@ -57,6 +57,7 @@ gen_SOURCES = eblopenbackend.c eblclosebackend.c eblstrtab.c \
@@ -175,7 +175,7 @@ index 67fbdfe..501e5c7 100644
        free (ebl);
      }
 diff --git a/libebl/eblopenbackend.c b/libebl/eblopenbackend.c
-index 2766e7b..d551bda 100644
+index 372ef2a..5aec99e 100644
 --- a/libebl/eblopenbackend.c
 +++ b/libebl/eblopenbackend.c
 @@ -41,6 +41,13 @@
@@ -357,7 +357,7 @@ index 2766e7b..d551bda 100644
  };
  #define nmachines (sizeof (machines) / sizeof (machines[0]))
  
-@@ -321,46 +328,17 @@ openbackend (elf, emulation, machine)
+@@ -318,46 +325,17 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
  #endif
  #define ORIGINDIR "$ORIGIN/../$LIB/" LIBEBL_SUBDIR "/"
  
@@ -407,7 +407,7 @@ index 2766e7b..d551bda 100644
  		result->elf = elf;
  
  		/* A few entries are mandatory.  */
-@@ -369,9 +347,6 @@ openbackend (elf, emulation, machine)
+@@ -366,9 +344,6 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
  
  		return result;
  	      }
@@ -418,7 +418,7 @@ index 2766e7b..d551bda 100644
  
  	/* We cannot find a DSO but the emulation/machine ID matches.
 diff --git a/libelf/Makefile.am b/libelf/Makefile.am
-index afcb2aa..e10ba1e 100644
+index 167a832..b916f1a 100644
 --- a/libelf/Makefile.am
 +++ b/libelf/Makefile.am
 @@ -41,6 +41,7 @@ include_HEADERS = libelf.h gelf.h nlist.h
@@ -430,7 +430,7 @@ index afcb2aa..e10ba1e 100644
  		   elf_begin.c elf_next.c elf_rand.c elf_end.c elf_kind.c \
  		   gelf_getclass.c elf_getbase.c elf_getident.c \
 diff --git a/src/Makefile.am b/src/Makefile.am
-index cd2755b..f498cec 100644
+index a39df27..9f69956 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
 @@ -79,7 +79,8 @@ libasm = ../libasm/libasm.so
@@ -443,7 +443,7 @@ index cd2755b..f498cec 100644
  libeu = ../lib/libeu.a
  
  if DEMANGLE
-@@ -103,22 +104,23 @@ ranlib_no_Wstack_usage = yes
+@@ -104,22 +105,23 @@ ranlib_no_Wstack_usage = yes
  ar_no_Wstack_usage = yes
  unstrip_no_Wstack_usage = yes
  
@@ -473,10 +473,10 @@ index cd2755b..f498cec 100644
  strings_LDADD = $(libelf) $(libeu) $(argp_LDADD)
  ar_LDADD = libar.a $(libelf) $(libeu) $(argp_LDADD)
 diff --git a/tests/Makefile.am b/tests/Makefile.am
-index 55241c7..8174a55 100644
+index fedcb39..8643c3d 100644
 --- a/tests/Makefile.am
 +++ b/tests/Makefile.am
-@@ -354,7 +354,8 @@ libdw = ../libdw/libdw.so
+@@ -379,7 +379,8 @@ libdw = ../libdw/libdw.so
  libelf = ../libelf/libelf.so
  libasm = ../libasm/libasm.so
  endif
@@ -486,7 +486,7 @@ index 55241c7..8174a55 100644
  libeu = ../lib/libeu.a
  endif !STANDALONE
  
-@@ -373,8 +374,8 @@ early_offscn_LDADD = $(libelf)
+@@ -398,8 +399,8 @@ early_offscn_LDADD = $(libelf)
  ecp_LDADD = $(libelf)
  update1_LDADD = $(libelf)
  update2_LDADD = $(libelf)
@@ -497,7 +497,7 @@ index 55241c7..8174a55 100644
  show_die_info_LDADD = $(libdw) $(libelf)
  get_pubnames_LDADD = $(libdw) $(libelf)
  show_abbrev_LDADD = $(libdw) $(libelf)
-@@ -382,6 +383,7 @@ get_lines_LDADD = $(libdw) $(libelf)
+@@ -407,6 +408,7 @@ get_lines_LDADD = $(libdw) $(libelf)
  get_files_LDADD = $(libdw) $(libelf)
  get_aranges_LDADD = $(libdw) $(libelf)
  allfcts_LDADD = $(libdw) $(libelf)
@@ -505,7 +505,7 @@ index 55241c7..8174a55 100644
  line2addr_LDADD = $(libdw) $(argp_LDADD)
  addrscopes_LDADD = $(libdw) $(argp_LDADD)
  funcscopes_LDADD = $(libdw) $(argp_LDADD)
-@@ -389,15 +391,15 @@ funcretval_LDADD = $(libdw) $(argp_LDADD)
+@@ -414,15 +416,15 @@ funcretval_LDADD = $(libdw) $(argp_LDADD)
  allregs_LDADD = $(libdw) $(argp_LDADD)
  find_prologues_LDADD = $(libdw) $(argp_LDADD)
  #show_ciefde_LDADD = ../libdwarf/libdwarf.so $(libelf)
@@ -530,7 +530,7 @@ index 55241c7..8174a55 100644
  dwflmodtest_LDADD = $(libdw) $(libebl) $(libelf) $(argp_LDADD) -ldl
  rdwrmmap_LDADD = $(libelf)
  dwfl_bug_addr_overflow_LDADD = $(libdw) $(libebl) $(libelf) -ldl
-@@ -412,7 +414,7 @@ dwarf_getstring_LDADD = $(libdw)
+@@ -437,7 +439,7 @@ dwarf_getstring_LDADD = $(libdw)
  addrcfi_LDADD = $(libdw) $(libebl) $(libelf) $(argp_LDADD) -ldl
  test_flag_nobits_LDADD = $(libelf)
  rerequest_tag_LDADD = $(libdw)
@@ -1032,7 +1032,7 @@ index 44f4a52..0532952 100755
  	cmp $f arextract.test || {
  	    echo "Extraction of $1 failed"
 diff --git a/tests/run-elflint-test.sh b/tests/run-elflint-test.sh
-index 68615b9..25d1195 100755
+index f3bd901..659d3de 100755
 --- a/tests/run-elflint-test.sh
 +++ b/tests/run-elflint-test.sh
 @@ -30,9 +30,6 @@ testrun ${abs_top_builddir}/src/elflint -q testfile32
