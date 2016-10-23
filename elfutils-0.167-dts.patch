@@ -1,9 +1,9 @@
 diff --git a/backends/Makefile.am b/backends/Makefile.am
-index b16f948..695694a 100644
+index b553ec3..54ddd78 100644
 --- a/backends/Makefile.am
 +++ b/backends/Makefile.am
-@@ -40,11 +40,37 @@ libebl_pic = libebl_i386_pic.a libebl_sh_pic.a libebl_x86_64_pic.a    \
- 	     libebl_ppc64_pic.a libebl_s390_pic.a libebl_tilegx_pic.a
+@@ -41,11 +41,37 @@ libebl_pic = libebl_i386_pic.a libebl_sh_pic.a libebl_x86_64_pic.a    \
+ 	     libebl_m68k_pic.a libebl_bpf_pic.a
  noinst_LIBRARIES = $(libebl_pic)
  noinst_DATA = $(libebl_pic:_pic.a=.so)
 +lib_LIBRARIES = libebl_static_pic.a
@@ -32,7 +32,7 @@ index b16f948..695694a 100644
 +	     ppc64_resolve_sym.c \
 +	     s390_init.c s390_symbol.c s390_regs.c s390_retval.c \
 +	     s390_corenote.c s390x_corenote.c s390_cfi.c s390_initreg.c \
-+	     s390_unwind.c
++	     s390_unwind.c bpf_init.c bpf_regs.c
 +
 +libebl_static_pic_a_SOURCES = $(static_SRCS)
 +am_libebl_static_pic_a_OBJECTS = $(static_SRCS:.c=.os)
@@ -41,7 +41,7 @@ index b16f948..695694a 100644
  	    i386_retval.c i386_regs.c i386_auxv.c i386_syscall.c \
  	    i386_initreg.c
 diff --git a/libasm/Makefile.am b/libasm/Makefile.am
-index a4bf293..64973d1 100644
+index 8094b05..f46399f 100644
 --- a/libasm/Makefile.am
 +++ b/libasm/Makefile.am
 @@ -38,6 +38,7 @@ noinst_LIBRARIES = libasm_pic.a
@@ -53,7 +53,7 @@ index a4bf293..64973d1 100644
  		   asm_getelf.c asm_newscn.c asm_newscn_ingrp.c \
  		   asm_newsubscn.c asm_newsym.c asm_newcomsym.c \
 diff --git a/libcpu/Makefile.am b/libcpu/Makefile.am
-index f0caaea..4dd2fb4 100644
+index b98b583..cd3933e 100644
 --- a/libcpu/Makefile.am
 +++ b/libcpu/Makefile.am
 @@ -36,9 +36,11 @@ LEX_OUTPUT_ROOT = lex.$(<F:lex.l=)
@@ -124,7 +124,7 @@ index 082d96c..7008c0d 100644
  # The rpath is necessary for libebl because its $ORIGIN use will
  # not fly in a setuid executable that links in libdw.
 diff --git a/libdwelf/Makefile.am b/libdwelf/Makefile.am
-index 4de4b2e..44d866a 100644
+index 7ca767a..74a0042 100644
 --- a/libdwelf/Makefile.am
 +++ b/libdwelf/Makefile.am
 @@ -39,6 +39,7 @@ noinst_LIBRARIES = libdwelf.a libdwelf_pic.a
@@ -133,8 +133,8 @@ index 4de4b2e..44d866a 100644
  
 +libdwelf_a_CFLAGS = -fpic -fvisibility=hidden $(AM_CFLAGS)
  libdwelf_a_SOURCES = dwelf_elf_gnu_debuglink.c dwelf_dwarf_gnu_debugaltlink.c \
- 		     dwelf_elf_gnu_build_id.c dwelf_scn_gnu_compressed_size.c
- 
+ 		     dwelf_elf_gnu_build_id.c dwelf_scn_gnu_compressed_size.c \
+ 		     dwelf_strtab.c
 diff --git a/libdwfl/Makefile.am b/libdwfl/Makefile.am
 index 89ca92e..a0eeea5 100644
 --- a/libdwfl/Makefile.am
@@ -148,10 +148,10 @@ index 89ca92e..a0eeea5 100644
  		    dwfl_module.c dwfl_report_elf.c relocate.c \
  		    dwfl_module_build_id.c dwfl_module_report_build_id.c \
 diff --git a/libebl/Makefile.am b/libebl/Makefile.am
-index 6b41a3e..300d26a 100644
+index 6f945eb..7034b61 100644
 --- a/libebl/Makefile.am
 +++ b/libebl/Makefile.am
-@@ -57,6 +57,7 @@ gen_SOURCES = eblopenbackend.c eblclosebackend.c eblstrtab.c \
+@@ -55,6 +55,7 @@ gen_SOURCES = eblopenbackend.c eblclosebackend.c \
  	      eblstother.c eblinitreg.c ebldwarftoregno.c eblnormalizepc.c \
  	      eblunwind.c eblresolvesym.c eblcheckreloctargettype.c
  
@@ -175,10 +175,10 @@ index 67fbdfe..501e5c7 100644
        free (ebl);
      }
 diff --git a/libebl/eblopenbackend.c b/libebl/eblopenbackend.c
-index 372ef2a..5aec99e 100644
+index aa75b95..4259dbe 100644
 --- a/libebl/eblopenbackend.c
 +++ b/libebl/eblopenbackend.c
-@@ -41,6 +41,13 @@
+@@ -41,6 +41,14 @@
  
  #include <libeblP.h>
  
@@ -189,10 +189,11 @@ index 372ef2a..5aec99e 100644
 +const char *ia64_init (Elf *elf, GElf_Half machine, Ebl *eh, size_t ehlen);
 +const char *s390_init (Elf *elf, GElf_Half machine, Ebl *eh, size_t ehlen);
 +const char *aarch64_init (Elf *elf, GElf_Half machine, Ebl *eh, size_t ehlen);
++const char *bpf_init (Elf *elf, GElf_Half machine, Ebl *eh, size_t ehlen);
  
  /* This table should contain the complete list of architectures as far
     as the ELF specification is concerned.  */
-@@ -48,7 +55,7 @@
+@@ -48,7 +56,7 @@
     arrays to avoid relocations.  */
  static const struct
  {
@@ -201,7 +202,7 @@ index 372ef2a..5aec99e 100644
    const char *emulation;
    const char *prefix;
    int prefix_len;
-@@ -57,81 +64,81 @@ static const struct
+@@ -57,82 +65,82 @@ static const struct
    int data;
  } machines[] =
  {
@@ -228,7 +229,7 @@ index 372ef2a..5aec99e 100644
 -  { "s390", "ebl_s390", "s390", 4, EM_S390, 0, 0 },
 -
 -  { "m32", "elf_m32", "m32", 3, EM_M32, 0, 0 },
--  { "m68k", "elf_m68k", "m68k", 4, EM_68K, 0, 0 },
+-  { "m68k", "elf_m68k", "m68k", 4, EM_68K, ELFCLASS32, ELFDATA2MSB },
 -  { "m88k", "elf_m88k", "m88k", 4, EM_88K, 0, 0 },
 -  { "i860", "elf_i860", "i860", 4, EM_860, 0, 0 },
 -  { "s370", "ebl_s370", "s370", 4, EM_S370, 0, 0 },
@@ -287,6 +288,7 @@ index 372ef2a..5aec99e 100644
 -  { "arc", "elf_arc_a5", "arc_a5", 6, EM_ARC_A5, 0, 0 },
 -  { "xtensa", "elf_xtensa", "xtensa", 6, EM_XTENSA, 0, 0 },
 -  { "aarch64", "elf_aarch64", "aarch64", 7, EM_AARCH64, ELFCLASS64, 0 },
+-  { "bpf", "elf_bpf", "bpf", 3, EM_BPF, 0, 0 },
 +  { NULL, "elf_sh", "sh", 2, EM_SH, 0, 0 },
 +  { NULL, "ebl_arm", "arm", 3, EM_ARM, 0, 0 },
 +  { NULL, "elf_sparcv9", "sparc", 5, EM_SPARCV9, 0, 0 },
@@ -295,7 +297,7 @@ index 372ef2a..5aec99e 100644
 +  { s390_init, "ebl_s390", "s390", 4, EM_S390, 0, 0 },
 +
 +  { NULL, "elf_m32", "m32", 3, EM_M32, 0, 0 },
-+  { NULL, "elf_m68k", "m68k", 4, EM_68K, 0, 0 },
++  { NULL, "elf_m68k", "m68k", 4, EM_68K, ELFCLASS32, ELFDATA2MSB },
 +  { NULL, "elf_m88k", "m88k", 4, EM_88K, 0, 0 },
 +  { NULL, "elf_i860", "i860", 4, EM_860, 0, 0 },
 +  { NULL, "ebl_s370", "s370", 4, EM_S370, 0, 0 },
@@ -354,10 +356,11 @@ index 372ef2a..5aec99e 100644
 +  { NULL, "elf_arc_a5", "arc_a5", 6, EM_ARC_A5, 0, 0 },
 +  { NULL, "elf_xtensa", "xtensa", 6, EM_XTENSA, 0, 0 },
 +  { aarch64_init, "elf_aarch64", "aarch64", 7, EM_AARCH64, ELFCLASS64, 0 },
++  { bpf_init, "elf_bpf", "bpf", 3, EM_BPF, 0, 0 },
  };
  #define nmachines (sizeof (machines) / sizeof (machines[0]))
  
-@@ -318,46 +325,17 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
+@@ -314,46 +322,17 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
  #endif
  #define ORIGINDIR "$ORIGIN/../$LIB/" LIBEBL_SUBDIR "/"
  
@@ -407,7 +410,7 @@ index 372ef2a..5aec99e 100644
  		result->elf = elf;
  
  		/* A few entries are mandatory.  */
-@@ -366,9 +344,6 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
+@@ -362,9 +341,6 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
  
  		return result;
  	      }
@@ -430,10 +433,10 @@ index 167a832..b916f1a 100644
  		   elf_begin.c elf_next.c elf_rand.c elf_end.c elf_kind.c \
  		   gelf_getclass.c elf_getbase.c elf_getident.c \
 diff --git a/src/Makefile.am b/src/Makefile.am
-index a39df27..9f69956 100644
+index 9bb4765..deba8dc 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -79,7 +79,8 @@ libasm = ../libasm/libasm.so
+@@ -47,7 +47,8 @@ libasm = ../libasm/libasm.so
  libdw = ../libdw/libdw.so
  libelf = ../libelf/libelf.so
  endif
@@ -443,7 +446,7 @@ index a39df27..9f69956 100644
  libeu = ../lib/libeu.a
  
  if DEMANGLE
-@@ -104,22 +105,23 @@ ranlib_no_Wstack_usage = yes
+@@ -67,16 +68,17 @@ ranlib_no_Wstack_usage = yes
  ar_no_Wstack_usage = yes
  unstrip_no_Wstack_usage = yes
  
@@ -452,16 +455,9 @@ index a39df27..9f69956 100644
  nm_LDADD = $(libdw) $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl \
  	   $(demanglelib)
  size_LDADD = $(libelf) $(libeu) $(argp_LDADD)
--strip_LDADD = $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl
--ld_LDADD = $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl
-+strip_LDADD = $(libebl) $(libdw_static) $(libelf) $(libeu) $(argp_LDADD) -ldl
-+ld_LDADD = $(libebl) $(libdw_static) $(libelf) $(libeu) $(argp_LDADD) -ldl
- if NATIVE_LD
- # -ldl is always needed for libebl.
- ld_LDADD += libld_elf.a
- endif
- ld_LDFLAGS = -rdynamic
+-strip_LDADD = $(libebl) $(libelf) $(libdw) $(libeu) $(argp_LDADD) -ldl
 -elflint_LDADD  = $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl
++strip_LDADD = $(libebl) $(libdw) $(libelf) $(libeu) $(argp_LDADD) -ldl
 +elflint_LDADD  = $(libebl) $(libdw_static) $(libelf) $(libeu) $(argp_LDADD) -ldl
  findtextrel_LDADD = $(libdw) $(libelf) $(argp_LDADD)
  addr2line_LDADD = $(libdw) $(libelf) $(argp_LDADD) $(demanglelib)
@@ -473,10 +469,19 @@ index a39df27..9f69956 100644
  strings_LDADD = $(libelf) $(libeu) $(argp_LDADD)
  ar_LDADD = libar.a $(libelf) $(libeu) $(argp_LDADD)
 diff --git a/tests/Makefile.am b/tests/Makefile.am
-index fedcb39..8643c3d 100644
+index 632b3a3..76502fb 100644
 --- a/tests/Makefile.am
 +++ b/tests/Makefile.am
-@@ -379,7 +379,8 @@ libdw = ../libdw/libdw.so
+@@ -78,7 +78,7 @@ TESTS = run-arextract.sh run-arsymtest.sh newfile test-nlist \
+ 	newscn run-strip-test.sh run-strip-test2.sh \
+ 	run-strip-test3.sh run-strip-test4.sh run-strip-test5.sh \
+ 	run-strip-test6.sh run-strip-test7.sh run-strip-test8.sh \
+-	run-strip-test9.sh run-strip-test10.sh run-strip-test11.sh \
++	run-strip-test9.sh run-strip-test10.sh \
+ 	run-strip-groups.sh run-strip-reloc.sh run-strip-strmerge.sh \
+ 	run-strip-nobitsalign.sh \
+ 	run-unstrip-test.sh run-unstrip-test2.sh \
+@@ -388,7 +388,8 @@ libdw = ../libdw/libdw.so
  libelf = ../libelf/libelf.so
  libasm = ../libasm/libasm.so
  endif
@@ -486,18 +491,7 @@ index fedcb39..8643c3d 100644
  libeu = ../lib/libeu.a
  endif !STANDALONE
  
-@@ -398,8 +399,8 @@ early_offscn_LDADD = $(libelf)
- ecp_LDADD = $(libelf)
- update1_LDADD = $(libelf)
- update2_LDADD = $(libelf)
--update3_LDADD = $(libebl) $(libelf)
--update4_LDADD = $(libebl) $(libelf)
-+update3_LDADD = $(libebl) $(libdw_static) $(libelf)
-+update4_LDADD = $(libebl) $(libdw_static) $(libelf)
- show_die_info_LDADD = $(libdw) $(libelf)
- get_pubnames_LDADD = $(libdw) $(libelf)
- show_abbrev_LDADD = $(libdw) $(libelf)
-@@ -407,6 +408,7 @@ get_lines_LDADD = $(libdw) $(libelf)
+@@ -416,6 +417,7 @@ get_lines_LDADD = $(libdw) $(libelf)
  get_files_LDADD = $(libdw) $(libelf)
  get_aranges_LDADD = $(libdw) $(libelf)
  allfcts_LDADD = $(libdw) $(libelf)
@@ -505,7 +499,7 @@ index fedcb39..8643c3d 100644
  line2addr_LDADD = $(libdw) $(argp_LDADD)
  addrscopes_LDADD = $(libdw) $(argp_LDADD)
  funcscopes_LDADD = $(libdw) $(argp_LDADD)
-@@ -414,15 +416,15 @@ funcretval_LDADD = $(libdw) $(argp_LDADD)
+@@ -423,15 +425,15 @@ funcretval_LDADD = $(libdw) $(argp_LDADD)
  allregs_LDADD = $(libdw) $(argp_LDADD)
  find_prologues_LDADD = $(libdw) $(argp_LDADD)
  #show_ciefde_LDADD = ../libdwarf/libdwarf.so $(libelf)
@@ -530,15 +524,6 @@ index fedcb39..8643c3d 100644
  dwflmodtest_LDADD = $(libdw) $(libebl) $(libelf) $(argp_LDADD) -ldl
  rdwrmmap_LDADD = $(libelf)
  dwfl_bug_addr_overflow_LDADD = $(libdw) $(libebl) $(libelf) -ldl
-@@ -437,7 +439,7 @@ dwarf_getstring_LDADD = $(libdw)
- addrcfi_LDADD = $(libdw) $(libebl) $(libelf) $(argp_LDADD) -ldl
- test_flag_nobits_LDADD = $(libelf)
- rerequest_tag_LDADD = $(libdw)
--alldts_LDADD = $(libebl) $(libelf)
-+alldts_LDADD = $(libebl) $(libdw_static) $(libelf)
- md5_sha1_test_LDADD = $(libeu)
- typeiter_LDADD = $(libdw) $(libelf)
- typeiter2_LDADD = $(libdw) $(libelf)
 diff --git a/tests/run-addrcfi.sh b/tests/run-addrcfi.sh
 index c864eea..2691091 100755
 --- a/tests/run-addrcfi.sh
@@ -627,7 +612,7 @@ index c864eea..2691091 100755
  # Same as arm, 390 and ppc above.
  # Note missing coverage in .eh_frame.
 diff --git a/tests/run-allregs.sh b/tests/run-allregs.sh
-index 1f86429..544c759 100755
+index d82f37e..a56e612 100755
 --- a/tests/run-allregs.sh
 +++ b/tests/run-allregs.sh
 @@ -2344,387 +2344,6 @@ control registers:
@@ -1018,6 +1003,42 @@ index 1f86429..544c759 100755
  # See run-readelf-mixed-corenote.sh for instructions to regenerate
  # this core file.
  regs_test testfile_aarch64_core <<\EOF
+@@ -2871,35 +2490,4 @@ x87 registers:
+ 	 40: %st7 (st7), float 80 bits
+ EOF
+ 
+-# See run-readelf-mixed-corenote.sh for instructions to regenerate
+-# this core file.
+-regs_test testfile-m68k-core <<\EOF
+-integer registers:
+-	  0: %d0 (d0), signed 32 bits
+-	  1: %d1 (d1), signed 32 bits
+-	  2: %d2 (d2), signed 32 bits
+-	  3: %d3 (d3), signed 32 bits
+-	  4: %d4 (d4), signed 32 bits
+-	  5: %d5 (d5), signed 32 bits
+-	  6: %d6 (d6), signed 32 bits
+-	  7: %d7 (d7), signed 32 bits
+-	  8: %a0 (a0), address 32 bits
+-	  9: %a1 (a1), address 32 bits
+-	 10: %a2 (a2), address 32 bits
+-	 11: %a3 (a3), address 32 bits
+-	 12: %a4 (a4), address 32 bits
+-	 13: %a5 (a5), address 32 bits
+-	 14: %a6 (a6), address 32 bits
+-	 15: %a7 (a7), address 32 bits
+-	 24: %pc (pc), address 32 bits
+-FPU registers:
+-	 16: %fp0 (fp0), float 96 bits
+-	 17: %fp1 (fp1), float 96 bits
+-	 18: %fp2 (fp2), float 96 bits
+-	 19: %fp3 (fp3), float 96 bits
+-	 20: %fp4 (fp4), float 96 bits
+-	 21: %fp5 (fp5), float 96 bits
+-	 22: %fp6 (fp6), float 96 bits
+-	 23: %fp7 (fp7), float 96 bits
+-EOF
+ exit 0
 diff --git a/tests/run-arextract.sh b/tests/run-arextract.sh
 index 44f4a52..0532952 100755
 --- a/tests/run-arextract.sh
@@ -1046,14 +1067,20 @@ index f3bd901..659d3de 100755
  testrun ${abs_top_builddir}/src/elflint -q testfile46
  
 diff --git a/tests/run-readelf-A.sh b/tests/run-readelf-A.sh
-index 6ca9be8..88f87ad 100755
+index 03d511c..933292e 100755
 --- a/tests/run-readelf-A.sh
 +++ b/tests/run-readelf-A.sh
-@@ -25,32 +25,7 @@
+@@ -26,38 +26,7 @@
  #
  # gcc -m32 -c testfileppc32attrs.s
  
--testfiles testfilearm testfileppc32attrs.o
+-# = testfilesparc64attrs.s =
+-# .gnu_attribute 4,0x0aaaaaaa
+-# .gnu_attribute 8,0x00000055
+-#
+-# gcc -c testfilesparc64attrs.s
+-
+-testfiles testfilearm testfileppc32attrs.o testfilesparc64attrs.o
 -
 -testrun_compare ${abs_top_builddir}/src/readelf -A testfilearm <<\EOF
 -
@@ -1083,8 +1110,23 @@ index 6ca9be8..88f87ad 100755
  
  testrun_compare ${abs_top_builddir}/src/readelf -A testfileppc32attrs.o <<\EOF
  
+@@ -69,14 +38,4 @@ Object attributes section [ 4] '.gnu.attributes' of 18 bytes at offset 0x34:
+       GNU_Power_ABI_Struct_Return: r3/r4
+ EOF
+ 
+-testrun_compare ${abs_top_builddir}/src/readelf -A testfilesparc64attrs.o <<\EOF
+-
+-Object attributes section [ 4] '.gnu.attributes' of 21 bytes at offset 0x40:
+-  Owner          Size
+-  gnu              20
+-    File:          12
+-      GNU_Sparc_HWCAPS: div32,v8plus,vis,asi_blk_init,vis3,random,fjfmau,asi_cache_sparing,des,camellia,sha1,sha512,mont,cbcond
+-      GNU_Sparc_HWCAPS2: fjathplus,adp,mwait,xmont
+-EOF
+-
+ exit 0
 diff --git a/tests/run-readelf-mixed-corenote.sh b/tests/run-readelf-mixed-corenote.sh
-index 69d0c02..382ea14 100755
+index 86171c4..382ea14 100755
 --- a/tests/run-readelf-mixed-corenote.sh
 +++ b/tests/run-readelf-mixed-corenote.sh
 @@ -18,73 +18,6 @@
@@ -1161,3 +1203,93 @@ index 69d0c02..382ea14 100755
  testfiles testfile67
  testrun_compare ${abs_top_builddir}/src/readelf -n testfile67 <<\EOF
  
+@@ -582,68 +515,4 @@ Note segment of 2548 bytes at offset 0x234:
+   LINUX                832  X86_XSTATE
+ EOF
+ 
+-# To reproduce this core dump, do this on an m68k machine:
+-# $ gcc -x c <(echo 'int main () { return *(int *)0x12345678; }')
+-# $ ./a.out
+-testfiles testfile-m68k-core
+-testrun_compare ${abs_top_builddir}/src/readelf -n testfile-m68k-core <<\EOF
+-
+-Note segment of 1056 bytes at offset 0x1f4:
+-  Owner          Data size  Type
+-  CORE                 154  PRSTATUS
+-    info.si_signo: 11, info.si_code: 0, info.si_errno: 0, cursig: 11
+-    sigpend: <>
+-    sighold: <>
+-    pid: 1963, ppid: 1084, pgrp: 1963, sid: 1084
+-    utime: 0.000000, stime: 0.010000, cutime: 0.000000, cstime: 0.000000
+-    fpvalid: 1
+-    d1:           1  d2:           0  d3: -2146476616  d4: -2146476616
+-    d5:           0  d6: -2147393212  d7: -2144827216  a0:  0x12345678
+-    a1:  0xefe71460  a2:  0x00000000  a3:  0x80288df8  a4:  0x80000340
+-    a5:  0xc017a000  a6:  0xefe71434  d0: -1073595312  a7:  0xefe71434
+-    pc:  0x800003fe
+-  CORE                 124  PRPSINFO
+-    state: 0, sname: R, zomb: 0, nice: 0, flag: 0x00400600
+-    uid: 1000, gid: 501, pid: 1963, ppid: 1084, pgrp: 1963, sid: 1084
+-    fname: a.out, psargs: ./a.out 
+-  CORE                 128  SIGINFO
+-    si_signo: 11, si_errno: 0, si_code: 1
+-    fault address: 0x12345678
+-  CORE                 136  AUXV
+-    HWCAP: 0
+-    PAGESZ: 4096
+-    CLKTCK: 100
+-    PHDR: 0x80000034
+-    PHENT: 32
+-    PHNUM: 9
+-    BASE: 0xc0000000
+-    FLAGS: 0
+-    ENTRY: 0x80000340
+-    UID: 1000
+-    EUID: 1000
+-    GID: 501
+-    EGID: 501
+-    SECURE: 0
+-    RANDOM: 0xefe716d9
+-    EXECFN: 0xefe71ff4
+-    NULL
+-  CORE                 281  FILE
+-    10 files:
+-      80000000-80001000 00000000 4096                /tmp/a.out
+-      80003000-80004000 00001000 4096                /tmp/a.out
+-      80004000-80005000 00002000 4096                /tmp/a.out
+-      c0000000-c001c000 00000000 114688              /lib/ld-2.23.so
+-      c001f000-c0020000 0001d000 4096                /lib/ld-2.23.so
+-      c0020000-c0021000 0001e000 4096                /lib/ld-2.23.so
+-      c0032000-c0177000 00000000 1331200             /lib/libc-2.23.so
+-      c0177000-c0178000 00145000 4096                /lib/libc-2.23.so
+-      c0178000-c017a000 00144000 8192                /lib/libc-2.23.so
+-      c017a000-c017e000 00146000 16384               /lib/libc-2.23.so
+-  CORE                 108  FPREGSET
+-    fp0: 0x7fff0000ffffffffffffffff  fp1: 0x7fff0000ffffffffffffffff
+-    fp2: 0x7fff0000ffffffffffffffff  fp3: 0x7fff0000ffffffffffffffff
+-    fp4: 0x7fff0000ffffffffffffffff  fp5: 0x7fff0000ffffffffffffffff
+-    fp6: 0x7fff0000ffffffffffffffff  fp7: 0x7fff0000ffffffffffffffff
+-EOF
+-
+ exit 0
+diff --git a/tests/run-strip-reloc.sh b/tests/run-strip-reloc.sh
+index e587eab..5c847a4 100755
+--- a/tests/run-strip-reloc.sh
++++ b/tests/run-strip-reloc.sh
+@@ -18,7 +18,7 @@
+ . $srcdir/test-subr.sh
+ 
+ testfiles hello_i386.ko hello_x86_64.ko hello_ppc64.ko hello_s390.ko \
+-	hello_aarch64.ko hello_m68k.ko
++	hello_aarch64.ko
+ 
+ tempfiles readelf.out readelf.out1 readelf.out2
+ tempfiles out.stripped1 out.debug1 out.stripped2 out.debug2
+@@ -102,7 +102,6 @@ runtest hello_x86_64.ko 1
+ runtest hello_ppc64.ko 1
+ runtest hello_s390.ko 1
+ runtest hello_aarch64.ko 1
+-runtest hello_m68k.ko 1
+ 
+ # self test, shouldn't impact non-ET_REL files at all.
+ runtest ${abs_top_builddir}/src/strip 0

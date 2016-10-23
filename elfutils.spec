@@ -2,8 +2,8 @@
 
 Name: %{?scl_prefix}elfutils
 Summary: A collection of utilities and DSOs to handle compiled objects
-Version: 0.166
-%global baserelease 2
+Version: 0.167
+%global baserelease 1
 URL: https://fedorahosted.org/elfutils/
 %global source_url http://fedorahosted.org/releases/e/l/elfutils/%{version}/
 License: GPLv3+ and (GPLv2+ or LGPLv3+)
@@ -32,10 +32,9 @@ Source6: libdw.a
 Source7: libasm.a
 
 # Patches
-Patch1: elfutils-0.166-elfcmp-comp-gcc6.patch
 
 # DTS specific patches.
-Patch100: elfutils-0.166-dts.patch
+Patch100: elfutils-0.167-dts.patch
 
 Requires: %{?scl_prefix}elfutils-libelf%{depsuffix} = %{version}-%{release}
 Requires: %{?scl_prefix}elfutils-libs%{depsuffix} = %{version}-%{release}
@@ -154,7 +153,6 @@ profiling) of processes.
 %setup -q -n elfutils-%{version}
 
 # Apply patches
-%patch1 -p1 -b .elfcmp_gcc6
 
 # DTS specific patches
 %patch100 -p1 -b .dts
@@ -221,7 +219,7 @@ install -Dm0644 config/10-default-yama-scope.conf ${RPM_BUILD_ROOT}%{_sysctldir}
 %endif
 
 %check
-make -s %{?_smp_mflags} check || (cat tests/test-suite.log; %{nocheck})
+make -s %{?_smp_mflags} check || (cat tests/test-suite.log; false)
 
 %clean
 rm -rf ${RPM_BUILD_ROOT}
@@ -257,7 +255,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_bindir}/eu-stack
 %{_bindir}/eu-strings
 %{_bindir}/eu-strip
-#%%{_bindir}/eu-ld
 %{_bindir}/eu-unstrip
 %{_bindir}/eu-make-debug-archive
 %{_bindir}/eu-elfcompress
@@ -320,6 +317,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Sep 15 2016 Mark Wielaard <mjw@redhat.com> - 0.167-1
+- Update to elfutils 0.167 (#1366182,#1356263)
+  Drop upstreamed patch: elfutils-0.166-elfcmp-comp-gcc6.patch
+
 * Thu Apr 14 2016 Mark Wielaard <mjw@redhat.com> - 0.166-2
 - Add elfutils-0.166-elfcmp-comp-gcc6.patch
 
