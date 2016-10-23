@@ -41,19 +41,19 @@ index b553ec3..54ddd78 100644
  	    i386_retval.c i386_regs.c i386_auxv.c i386_syscall.c \
  	    i386_initreg.c
 diff --git a/libasm/Makefile.am b/libasm/Makefile.am
-index 8094b05..f46399f 100644
+index 8094b05..b15ee55 100644
 --- a/libasm/Makefile.am
 +++ b/libasm/Makefile.am
 @@ -38,6 +38,7 @@ noinst_LIBRARIES = libasm_pic.a
  noinst_PROGRAMS = $(noinst_LIBRARIES:_pic.a=.so)
  pkginclude_HEADERS = libasm.h
  
-+libasm_a_CFLAGS = -fpic -fvisibility=hidden $(AM_CFLAGS)
++libasm_a_CFLAGS = -fPIC -fvisibility=hidden $(AM_CFLAGS)
  libasm_a_SOURCES = asm_begin.c asm_abort.c asm_end.c asm_error.c \
  		   asm_getelf.c asm_newscn.c asm_newscn_ingrp.c \
  		   asm_newsubscn.c asm_newsym.c asm_newcomsym.c \
 diff --git a/libcpu/Makefile.am b/libcpu/Makefile.am
-index b98b583..cd3933e 100644
+index b98b583..260ed80 100644
 --- a/libcpu/Makefile.am
 +++ b/libcpu/Makefile.am
 @@ -36,9 +36,11 @@ LEX_OUTPUT_ROOT = lex.$(<F:lex.l=)
@@ -68,8 +68,17 @@ index b98b583..cd3933e 100644
  
  i386_gendis_SOURCES = i386_gendis.c i386_lex.l i386_parse.y
  
+@@ -49,6 +51,8 @@ if HAVE_LINUX_BPF_H
+ noinst_LIBRARIES += libcpu_bpf.a
+ libcpu_bpf_a_SOURCES = bpf_disasm.c
+ libcpu_bpf_a_CFLAGS = $(AM_CFLAGS) -Wno-format-nonliteral
++libcpu_static_pic_a_SOURCES += $(libcpu_bpf_a_SOURCES)
++bpf_disasm_CFLAGS = -fPIC -Wno-format-nonliteral
+ endif
+ 
+ %_defs: $(srcdir)/defs/i386
 diff --git a/libdw/Makefile.am b/libdw/Makefile.am
-index 082d96c..7008c0d 100644
+index 082d96c..4cb3671 100644
 --- a/libdw/Makefile.am
 +++ b/libdw/Makefile.am
 @@ -35,12 +35,13 @@ AM_CPPFLAGS += -I$(srcdir)/../libelf
@@ -84,7 +93,7 @@ index 082d96c..7008c0d 100644
  include_HEADERS = dwarf.h
  pkginclude_HEADERS = libdw.h known-dwarf.h
  
-+libdw_a_CFLAGS = -fpic -fvisibility=hidden $(AM_CFLAGS)
++libdw_a_CFLAGS = -fPIC -fvisibility=hidden $(AM_CFLAGS)
  libdw_a_SOURCES = dwarf_begin.c dwarf_begin_elf.c dwarf_end.c dwarf_getelf.c \
  		  dwarf_getpubnames.c dwarf_getabbrev.c dwarf_tag.c \
  		  dwarf_error.c dwarf_nextcu.c dwarf_diename.c dwarf_offdie.c \
@@ -124,26 +133,26 @@ index 082d96c..7008c0d 100644
  # The rpath is necessary for libebl because its $ORIGIN use will
  # not fly in a setuid executable that links in libdw.
 diff --git a/libdwelf/Makefile.am b/libdwelf/Makefile.am
-index 7ca767a..74a0042 100644
+index 7ca767a..b526b7c 100644
 --- a/libdwelf/Makefile.am
 +++ b/libdwelf/Makefile.am
 @@ -39,6 +39,7 @@ noinst_LIBRARIES = libdwelf.a libdwelf_pic.a
  pkginclude_HEADERS = libdwelf.h
  noinst_HEADERS = libdwelfP.h
  
-+libdwelf_a_CFLAGS = -fpic -fvisibility=hidden $(AM_CFLAGS)
++libdwelf_a_CFLAGS = -fPIC -fvisibility=hidden $(AM_CFLAGS)
  libdwelf_a_SOURCES = dwelf_elf_gnu_debuglink.c dwelf_dwarf_gnu_debugaltlink.c \
  		     dwelf_elf_gnu_build_id.c dwelf_scn_gnu_compressed_size.c \
  		     dwelf_strtab.c
 diff --git a/libdwfl/Makefile.am b/libdwfl/Makefile.am
-index 89ca92e..a0eeea5 100644
+index 89ca92e..d9d13b2 100644
 --- a/libdwfl/Makefile.am
 +++ b/libdwfl/Makefile.am
 @@ -39,6 +39,7 @@ noinst_LIBRARIES += libdwfl_pic.a
  
  pkginclude_HEADERS = libdwfl.h
  
-+libdwfl_a_CFLAGS = -fpic -fvisibility=hidden $(AM_CFLAGS)
++libdwfl_a_CFLAGS = -fPIC -fvisibility=hidden $(AM_CFLAGS)
  libdwfl_a_SOURCES = dwfl_begin.c dwfl_end.c dwfl_error.c dwfl_version.c \
  		    dwfl_module.c dwfl_report_elf.c relocate.c \
  		    dwfl_module_build_id.c dwfl_module_report_build_id.c \
@@ -421,14 +430,14 @@ index aa75b95..4259dbe 100644
  
  	/* We cannot find a DSO but the emulation/machine ID matches.
 diff --git a/libelf/Makefile.am b/libelf/Makefile.am
-index 167a832..b916f1a 100644
+index 167a832..0c74e3f 100644
 --- a/libelf/Makefile.am
 +++ b/libelf/Makefile.am
 @@ -41,6 +41,7 @@ include_HEADERS = libelf.h gelf.h nlist.h
  
  pkginclude_HEADERS = elf-knowledge.h
  
-+libelf_a_CFLAGS = -fpic -fvisibility=hidden $(AM_CFLAGS)
++libelf_a_CFLAGS = -fPIC -fvisibility=hidden $(AM_CFLAGS)
  libelf_a_SOURCES = elf_version.c elf_hash.c elf_error.c elf_fill.c \
  		   elf_begin.c elf_next.c elf_rand.c elf_end.c elf_kind.c \
  		   gelf_getclass.c elf_getbase.c elf_getident.c \
