@@ -3,7 +3,7 @@
 Name: %{?scl_prefix}elfutils
 Summary: A collection of utilities and DSOs to handle compiled objects
 Version: 0.167
-%global baserelease 1
+%global baserelease 2
 URL: https://fedorahosted.org/elfutils/
 %global source_url http://fedorahosted.org/releases/e/l/elfutils/%{version}/
 License: GPLv3+ and (GPLv2+ or LGPLv3+)
@@ -176,16 +176,16 @@ trap '' EXIT
 
 # Due to static bits, our dependencies are more complex than in plain
 # elfutils.  We need to build things in parts.
-make %{?_smp_mflags} -s -C lib
-make %{?_smp_mflags} -s -C libdwfl
-make %{?_smp_mflags} -s -C libdwelf
-make %{?_smp_mflags} -s -C libdw libdw_pic.a libdw.a
-make %{?_smp_mflags} -s -C libcpu
-make %{?_smp_mflags} -s -C libebl
-make %{?_smp_mflags} -s -C backends libebl_static_pic.a
-make %{?_smp_mflags} -s -C libelf
-make %{?_smp_mflags} -s -C libdw
-make %{?_smp_mflags} -s
+make %{?_smp_mflags} -C lib V=1
+make %{?_smp_mflags} -C libdwfl V=1
+make %{?_smp_mflags} -C libdwelf V=1
+make %{?_smp_mflags} -C libdw libdw_pic.a libdw.a V=1
+make %{?_smp_mflags} -C libcpu V=1
+make %{?_smp_mflags} -C libebl V=1
+make %{?_smp_mflags} -C backends libebl_static_pic.a V=1
+make %{?_smp_mflags} -C libelf V=1
+make %{?_smp_mflags} -C libdw V=1
+make %{?_smp_mflags} V=1
 
 %install
 rm -rf ${RPM_BUILD_ROOT}
@@ -317,6 +317,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Sep 16 2016 Mark Wielaard <mjw@redhat.com> - 0.167-2
+- Make sure everything is compiled -fPIC.
+
 * Thu Sep 15 2016 Mark Wielaard <mjw@redhat.com> - 0.167-1
 - Update to elfutils 0.167 (#1366182,#1356263)
   Drop upstreamed patch: elfutils-0.166-elfcmp-comp-gcc6.patch
