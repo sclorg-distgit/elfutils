@@ -1,3 +1,15 @@
+diff --git a/ChangeLog b/ChangeLog
+index bb2ec10..a587b43 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,7 @@
++2017-01-12  Mark Wielaard  <mark@klomp.org>
++
++	* configure.ac: Define PACKAGE_URL for older autoconf.
++
+ 2016-12-27  Mark Wielaard  <mark@klomp.org>
+ 
+ 	* configure.ac: Set version to 0.168.
 diff --git a/backends/Makefile.am b/backends/Makefile.am
 index b553ec3..54ddd78 100644
 --- a/backends/Makefile.am
@@ -40,6 +52,23 @@ index b553ec3..54ddd78 100644
  i386_SRCS = i386_init.c i386_symbol.c i386_corenote.c i386_cfi.c \
  	    i386_retval.c i386_regs.c i386_auxv.c i386_syscall.c \
  	    i386_initreg.c
+diff --git a/configure.ac b/configure.ac
+index 4549906..07ad592 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -19,6 +19,12 @@ dnl  You should have received a copy of the GNU General Public License
+ dnl  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ AC_INIT([elfutils],[0.168],[https://sourceware.org/bugzilla],[elfutils],[http://elfutils.org/])
+ 
++dnl Workaround for older autoconf < 2.64
++m4_ifndef([AC_PACKAGE_URL],
++         [AC_DEFINE([PACKAGE_URL], ["http://elfutils.org/"],
++                    [Define to home page for this package])
++          AC_SUBST([PACKAGE_URL], ["http://elfutils.org/"])])
++
+ # We want eu- as default program prefix if none was given by the user.
+ # But if the user explicitly provided --program-prefix="" then pretend
+ # it wasn't set at all (NONE). We want to test this really early before
 diff --git a/libasm/Makefile.am b/libasm/Makefile.am
 index 8094b05..b15ee55 100644
 --- a/libasm/Makefile.am
@@ -442,7 +471,7 @@ index 167a832..0c74e3f 100644
  		   elf_begin.c elf_next.c elf_rand.c elf_end.c elf_kind.c \
  		   gelf_getclass.c elf_getbase.c elf_getident.c \
 diff --git a/src/Makefile.am b/src/Makefile.am
-index 9bb4765..deba8dc 100644
+index 2b1c0dc..657b21a 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
 @@ -47,7 +47,8 @@ libasm = ../libasm/libasm.so
@@ -464,21 +493,20 @@ index 9bb4765..deba8dc 100644
  nm_LDADD = $(libdw) $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl \
  	   $(demanglelib)
  size_LDADD = $(libelf) $(libeu) $(argp_LDADD)
--strip_LDADD = $(libebl) $(libelf) $(libdw) $(libeu) $(argp_LDADD) -ldl
+ strip_LDADD = $(libebl) $(libelf) $(libdw) $(libeu) $(argp_LDADD) -ldl
 -elflint_LDADD  = $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl
-+strip_LDADD = $(libebl) $(libdw) $(libelf) $(libeu) $(argp_LDADD) -ldl
 +elflint_LDADD  = $(libebl) $(libdw_static) $(libelf) $(libeu) $(argp_LDADD) -ldl
- findtextrel_LDADD = $(libdw) $(libelf) $(argp_LDADD)
- addr2line_LDADD = $(libdw) $(libelf) $(argp_LDADD) $(demanglelib)
--elfcmp_LDADD = $(libebl) $(libelf) $(argp_LDADD) -ldl
+ findtextrel_LDADD = $(libdw) $(libelf) $(libeu) $(argp_LDADD)
+ addr2line_LDADD = $(libdw) $(libelf) $(libeu) $(argp_LDADD) $(demanglelib)
+-elfcmp_LDADD = $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl
 -objdump_LDADD  = $(libasm) $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl
-+elfcmp_LDADD = $(libebl) $(libdw_static) $(libelf) $(argp_LDADD) -ldl
++elfcmp_LDADD = $(libebl) $(libdw_static) $(libeu) $(libelf) $(argp_LDADD) -ldl
 +objdump_LDADD  = $(libasm) $(libebl) $(libdw_static) $(libelf) $(libeu) $(argp_LDADD) -ldl
  ranlib_LDADD = libar.a $(libelf) $(libeu) $(argp_LDADD)
  strings_LDADD = $(libelf) $(libeu) $(argp_LDADD)
  ar_LDADD = libar.a $(libelf) $(libeu) $(argp_LDADD)
 diff --git a/tests/Makefile.am b/tests/Makefile.am
-index 632b3a3..76502fb 100644
+index d4659cd..307d966 100644
 --- a/tests/Makefile.am
 +++ b/tests/Makefile.am
 @@ -78,7 +78,7 @@ TESTS = run-arextract.sh run-arsymtest.sh newfile test-nlist \
@@ -489,8 +517,8 @@ index 632b3a3..76502fb 100644
 +	run-strip-test9.sh run-strip-test10.sh \
  	run-strip-groups.sh run-strip-reloc.sh run-strip-strmerge.sh \
  	run-strip-nobitsalign.sh \
- 	run-unstrip-test.sh run-unstrip-test2.sh \
-@@ -388,7 +388,8 @@ libdw = ../libdw/libdw.so
+ 	run-unstrip-test.sh run-unstrip-test2.sh run-unstrip-test3.sh \
+@@ -390,7 +390,8 @@ libdw = ../libdw/libdw.so
  libelf = ../libelf/libelf.so
  libasm = ../libasm/libasm.so
  endif
@@ -500,7 +528,7 @@ index 632b3a3..76502fb 100644
  libeu = ../lib/libeu.a
  endif !STANDALONE
  
-@@ -416,6 +417,7 @@ get_lines_LDADD = $(libdw) $(libelf)
+@@ -418,6 +419,7 @@ get_lines_LDADD = $(libdw) $(libelf)
  get_files_LDADD = $(libdw) $(libelf)
  get_aranges_LDADD = $(libdw) $(libelf)
  allfcts_LDADD = $(libdw) $(libelf)
@@ -508,31 +536,6 @@ index 632b3a3..76502fb 100644
  line2addr_LDADD = $(libdw) $(argp_LDADD)
  addrscopes_LDADD = $(libdw) $(argp_LDADD)
  funcscopes_LDADD = $(libdw) $(argp_LDADD)
-@@ -423,15 +425,15 @@ funcretval_LDADD = $(libdw) $(argp_LDADD)
- allregs_LDADD = $(libdw) $(argp_LDADD)
- find_prologues_LDADD = $(libdw) $(argp_LDADD)
- #show_ciefde_LDADD = ../libdwarf/libdwarf.so $(libelf)
--asm_tst1_LDADD = $(libasm) $(libebl) $(libelf) -ldl
--asm_tst2_LDADD = $(libasm) $(libebl) $(libelf) -ldl
--asm_tst3_LDADD = $(libasm) $(libebl) $(libelf) -ldl
--asm_tst4_LDADD = $(libasm) $(libebl) $(libelf) -ldl
--asm_tst5_LDADD = $(libasm) $(libebl) $(libelf) -ldl
--asm_tst6_LDADD = $(libasm) $(libebl) $(libelf) -ldl
--asm_tst7_LDADD = $(libasm) $(libebl) $(libelf) -ldl
--asm_tst8_LDADD = $(libasm) $(libebl) $(libelf) -ldl
--asm_tst9_LDADD = $(libasm) $(libebl) $(libelf) -ldl
-+asm_tst1_LDADD = $(libasm) $(libebl) $(libdw_static) $(libelf) -ldl
-+asm_tst2_LDADD = $(libasm) $(libebl) $(libdw_static) $(libelf) -ldl
-+asm_tst3_LDADD = $(libasm) $(libebl) $(libdw_static) $(libelf) -ldl
-+asm_tst4_LDADD = $(libasm) $(libebl) $(libdw_static) $(libelf) -ldl
-+asm_tst5_LDADD = $(libasm) $(libebl) $(libdw_static) $(libelf) -ldl
-+asm_tst6_LDADD = $(libasm) $(libebl) $(libdw_static) $(libelf) -ldl
-+asm_tst7_LDADD = $(libasm) $(libebl) $(libdw_static) $(libelf) -ldl
-+asm_tst8_LDADD = $(libasm) $(libebl) $(libdw_static) $(libelf) -ldl
-+asm_tst9_LDADD = $(libasm) $(libebl) $(libdw_static) $(libelf) -ldl
- dwflmodtest_LDADD = $(libdw) $(libebl) $(libelf) $(argp_LDADD) -ldl
- rdwrmmap_LDADD = $(libelf)
- dwfl_bug_addr_overflow_LDADD = $(libdw) $(libebl) $(libelf) -ldl
 diff --git a/tests/run-addrcfi.sh b/tests/run-addrcfi.sh
 index c864eea..2691091 100755
 --- a/tests/run-addrcfi.sh

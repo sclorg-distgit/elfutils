@@ -1,11 +1,11 @@
 %{?scl:%{?scl_package:%scl_package elfutils}}
 
 Name: %{?scl_prefix}elfutils
-Summary: A collection of utilities and DSOs to handle compiled objects
-Version: 0.167
-%global baserelease 2
-URL: https://fedorahosted.org/elfutils/
-%global source_url http://fedorahosted.org/releases/e/l/elfutils/%{version}/
+Summary: A collection of utilities and DSOs to handle ELF files and DWARF data
+Version: 0.168
+%global baserelease 3
+URL: http://elfutils.org/
+%global source_url ftp://sourceware.org/pub/elfutils/%{version}/
 License: GPLv3+ and (GPLv2+ or LGPLv3+)
 Group: Development/Tools
 
@@ -34,7 +34,8 @@ Source7: libasm.a
 # Patches
 
 # DTS specific patches.
-Patch100: elfutils-0.167-dts.patch
+Patch100: elfutils-0.168-dts.patch
+Patch101: elfutils-dts-libs-version.patch
 
 Requires: %{?scl_prefix}elfutils-libelf%{depsuffix} = %{version}-%{release}
 Requires: %{?scl_prefix}elfutils-libs%{depsuffix} = %{version}-%{release}
@@ -54,6 +55,13 @@ BuildRequires: xz-devel
 
 %global _gnu %{nil}
 %global _program_prefix eu-
+
+# The lib[64]/elfutils directory contains the private ebl backend
+# libraries. They must not be exposed as global provides. We don't
+# need to filter the requires since they are only loaded with dlopen.
+%if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
+%global __provides_exclude ^libebl_.*\\.so.*$
+%endif
 
 %description
 Elfutils is a collection of utilities, including stack (to show
@@ -156,6 +164,7 @@ profiling) of processes.
 
 # DTS specific patches
 %patch100 -p1 -b .dts
+%patch101 -p1 -b .versions
 
 autoreconf
 
@@ -317,6 +326,17 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Jan 16 2017 Mark Wielaard <mark@klomp.org> - 0.168-3
+- Adjust internal library so names (#1412305).
+- Never use old, deprecated, filter_provides_in, it really is too broken.
+
+* Fri Jan 13 2017 Mark Wielaard <mark@klomp.org> - 0.168-2
+- Filter out libraries from provides (#1412305).
+
+* Wed Jan 11 2017 Mark Wielaard <mjw@redhat.com> - 0.168-1
+- New upstream release from new project home https://sourceware.org/elfutils/
+  Resolves: Rebase elfutils to 0.168 bugfix release (#1412299)
+
 * Fri Sep 16 2016 Mark Wielaard <mjw@redhat.com> - 0.167-2
 - Make sure everything is compiled -fPIC.
 
