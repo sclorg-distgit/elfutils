@@ -2,8 +2,8 @@
 
 Name: %{?scl_prefix}elfutils
 Summary: A collection of utilities and DSOs to handle ELF files and DWARF data
-Version: 0.169
-%global baserelease 3
+Version: 0.170
+%global baserelease 1
 URL: http://elfutils.org/
 %global source_url ftp://sourceware.org/pub/elfutils/%{version}/
 License: GPLv3+ and (GPLv2+ or LGPLv3+)
@@ -32,14 +32,9 @@ Source6: libdw.a
 Source7: libasm.a
 
 # Patches
-Patch1: elfutils-0.169-ppc64-fallback-unwinder.patch
-Source11: backtrace.ppc64le.fp.exec.bz2
-Source12: backtrace.ppc64le.fp.core.bz2
-Patch2: elfutils-0.169-dup-shstrtab.patch
-Patch3: elfutils-0.169-strip-empty.patch
 
 # DTS specific patches.
-Patch100: elfutils-0.169-dts.patch
+Patch100: elfutils-0.170-dts.patch
 Patch101: elfutils-dts-libs-version.patch
 
 Requires: %{?scl_prefix}elfutils-libelf%{depsuffix} = %{version}-%{release}
@@ -166,10 +161,6 @@ profiling) of processes.
 %setup -q -n elfutils-%{version}
 
 # Apply patches
-%patch1 -p1 -b .ppc64_unwind
-cp %SOURCE11 %SOURCE12 tests/
-%patch2 -p1 -b .shstrtab_dup
-%patch3 -p1 -b .strip_empty
 
 # DTS specific patches
 %patch100 -p1 -b .dts
@@ -335,6 +326,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Aug  3 2017 Mark Wielaard <mjw@redhat.com> - 0.170-1
+- New upstream relase.
+
 * Wed Jun  7 2017 Mark Wielaard <mjw@fedoraproject.org> - 0.169-3
 - Add elfutils-0.169-dup-shstrtab.patch (#1455687)
 - Add elfutils-0.169-strip-empty.patch (#1455620)
