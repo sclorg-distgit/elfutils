@@ -1,0 +1,72 @@
+commit d1c91a4b8c72d17f2f77af8811606cc44829fa9d
+Author: Mark Wielaard <mark@klomp.org>
+Date:   Wed Jul 4 16:08:05 2018 +0200
+
+    readelf: Don't shadow index function from string.h
+    
+    On some ancient GCC versions (4.4.7 at least) -Wshadow warns about local
+    variables "shadowing" global function definitions.
+    
+      readelf.c: In function ‘print_debug_addr_section’:
+      readelf.c:5265: error: declaration of ‘index’ shadows a global declaration
+      /usr/include/string.h:489: error: shadowed declaration is here
+    
+    This is silly of course, but easy to work around.
+    
+    Signed-off-by: Mark Wielaard <mark@klomp.org>
+
+diff --git a/src/readelf.c b/src/readelf.c
+index faed61a..22355e9 100644
+--- a/src/readelf.c
++++ b/src/readelf.c
+@@ -5262,14 +5262,14 @@ print_debug_addr_section (Dwfl_Module *dwflmod __attribute__ ((unused)),
+ 	  addresses /= 10;
+ 	}
+ 
+-      unsigned int index = 0;
++      unsigned int uidx = 0;
+       size_t index_offset =  readp - (const unsigned char *) data->d_buf;
+       printf (" Addresses start at offset 0x%zx:\n", index_offset);
+       while (readp <= next_unitp - address_size)
+ 	{
+ 	  Dwarf_Addr addr = read_addr_unaligned_inc (address_size, dbg,
+ 						     readp);
+-	  printf (" [%*u] ", digits, index++);
++	  printf (" [%*u] ", digits, uidx++);
+ 	  print_dwarf_addr (dwflmod, address_size, addr, addr);
+ 	  printf ("\n");
+ 	}
+@@ -6967,12 +6967,12 @@ attr_callback (Dwarf_Attribute *attrp, void *arg)
+ 	    }
+ 	  if (form != DW_FORM_addr )
+ 	    {
+-	      Dwarf_Word index;
+-	      if (dwarf_formudata (attrp, &index) != 0)
++	      Dwarf_Word word;
++	      if (dwarf_formudata (attrp, &word) != 0)
+ 		goto attrval_out;
+ 	      printf ("           %*s%-20s (%s) [%" PRIx64 "] ",
+ 		      (int) (level * 2), "", dwarf_attr_name (attr),
+-		      dwarf_form_name (form), index);
++		      dwarf_form_name (form), word);
+ 	    }
+ 	  else
+ 	    printf ("           %*s%-20s (%s) ",
+@@ -10256,7 +10256,7 @@ print_debug_str_offsets_section (Dwfl_Module *dwflmod __attribute__ ((unused)),
+ 	  offsets /= 10;
+ 	}
+ 
+-      unsigned int index = 0;
++      unsigned int uidx = 0;
+       size_t index_offset =  readp - (const unsigned char *) data->d_buf;
+       printf (" Offsets start at 0x%zx:\n", index_offset);
+       while (readp <= next_unitp - offset_size)
+@@ -10268,7 +10268,7 @@ print_debug_str_offsets_section (Dwfl_Module *dwflmod __attribute__ ((unused)),
+ 	    offset = read_8ubyte_unaligned_inc (dbg, readp);
+ 	  const char *str = dwarf_getstring (dbg, offset, NULL);
+ 	  printf (" [%*u] [%*" PRIx64 "]  \"%s\"\n",
+-		  digits, index++, (int) offset_size * 2, offset, str ?: "???");
++		  digits, uidx++, (int) offset_size * 2, offset, str ?: "???");
+ 	}
+       printf ("\n");
+ 
