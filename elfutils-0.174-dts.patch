@@ -1,5 +1,5 @@
 diff --git a/backends/Makefile.am b/backends/Makefile.am
-index e42d674..dcf6539 100644
+index 9d34042..3d85cde 100644
 --- a/backends/Makefile.am
 +++ b/backends/Makefile.am
 @@ -41,12 +41,38 @@ libebl_pic = libebl_i386_pic.a libebl_sh_pic.a libebl_x86_64_pic.a    \
@@ -42,7 +42,7 @@ index e42d674..dcf6539 100644
  	    i386_retval.c i386_regs.c i386_auxv.c i386_syscall.c \
  	    i386_initreg.c i386_unwind.c
 diff --git a/configure.ac b/configure.ac
-index 1cf6245..d6108cd 100644
+index da9f8cb..9decd61 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -25,6 +25,12 @@ m4_ifndef([AC_PACKAGE_URL],
@@ -207,10 +207,10 @@ index 67fbdfe..501e5c7 100644
        free (ebl);
      }
 diff --git a/libebl/eblopenbackend.c b/libebl/eblopenbackend.c
-index 8b063f4..e13456e 100644
+index f5b3de2..b04768f 100644
 --- a/libebl/eblopenbackend.c
 +++ b/libebl/eblopenbackend.c
-@@ -42,6 +42,14 @@
+@@ -41,6 +41,14 @@
  #include <system.h>
  #include <libeblP.h>
  
@@ -225,7 +225,7 @@ index 8b063f4..e13456e 100644
  
  /* This table should contain the complete list of architectures as far
     as the ELF specification is concerned.  */
-@@ -49,7 +57,7 @@
+@@ -48,7 +56,7 @@
     arrays to avoid relocations.  */
  static const struct
  {
@@ -234,7 +234,7 @@ index 8b063f4..e13456e 100644
    const char *emulation;
    const char *prefix;
    int prefix_len;
-@@ -58,84 +66,84 @@ static const struct
+@@ -57,84 +65,84 @@ static const struct
    int data;
  } machines[] =
  {
@@ -396,7 +396,7 @@ index 8b063f4..e13456e 100644
  };
  #define nmachines (sizeof (machines) / sizeof (machines[0]))
  
-@@ -319,46 +327,17 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
+@@ -318,46 +326,17 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
  #endif
  #define ORIGINDIR "$ORIGIN/../$LIB/" LIBEBL_SUBDIR "/"
  
@@ -446,7 +446,7 @@ index 8b063f4..e13456e 100644
  		result->elf = elf;
  
  		/* A few entries are mandatory.  */
-@@ -367,9 +346,6 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
+@@ -366,9 +345,6 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
  
  		return result;
  	      }
@@ -504,19 +504,22 @@ index 2b1c0dc..657b21a 100644
  strings_LDADD = $(libelf) $(libeu) $(argp_LDADD)
  ar_LDADD = libar.a $(libelf) $(libeu) $(argp_LDADD)
 diff --git a/tests/Makefile.am b/tests/Makefile.am
-index ecc2d68..e89163d 100644
+index 74c477e..b060587 100644
 --- a/tests/Makefile.am
 +++ b/tests/Makefile.am
-@@ -85,7 +85,7 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
+@@ -86,9 +86,8 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
  	newscn run-strip-test.sh run-strip-test2.sh \
  	run-strip-test3.sh run-strip-test4.sh run-strip-test5.sh \
  	run-strip-test6.sh run-strip-test7.sh run-strip-test8.sh \
 -	run-strip-test9.sh run-strip-test10.sh run-strip-test11.sh \
+-	run-strip-test12.sh \
+-	run-strip-nothing.sh run-strip-g.sh run-annobingroup.sh \
 +	run-strip-test9.sh run-strip-test10.sh \
- 	run-strip-nothing.sh run-strip-g.sh \
++	run-strip-nothing.sh run-strip-g.sh \
  	run-strip-groups.sh run-strip-reloc.sh run-strip-strmerge.sh \
  	run-strip-nobitsalign.sh run-strip-remove-keep.sh \
-@@ -454,7 +454,8 @@ libdw = ../libdw/libdw.so
+ 	run-unstrip-test.sh run-unstrip-test2.sh run-unstrip-test3.sh \
+@@ -465,7 +464,8 @@ libdw = ../libdw/libdw.so
  libelf = ../libelf/libelf.so
  libasm = ../libasm/libasm.so
  endif
@@ -526,7 +529,7 @@ index ecc2d68..e89163d 100644
  libeu = ../lib/libeu.a
  endif !STANDALONE
  
-@@ -484,6 +485,7 @@ get_files_LDADD = $(libdw) $(libelf)
+@@ -495,6 +495,7 @@ get_files_LDADD = $(libdw) $(libelf)
  next_files_LDADD = $(libdw) $(libelf)
  get_aranges_LDADD = $(libdw) $(libelf)
  allfcts_LDADD = $(libdw) $(libelf)
@@ -622,7 +625,7 @@ index fd89d02..76db7d2 100755
  # Same as arm, 390 and ppc above.
  # Note missing coverage in .eh_frame.
 diff --git a/tests/run-allregs.sh b/tests/run-allregs.sh
-index 7ddd452..0d2eb52 100755
+index 1422bd6..0d2eb52 100755
 --- a/tests/run-allregs.sh
 +++ b/tests/run-allregs.sh
 @@ -2344,387 +2344,6 @@ control registers:
@@ -1013,7 +1016,7 @@ index 7ddd452..0d2eb52 100755
  # See run-readelf-mixed-corenote.sh for instructions to regenerate
  # this core file.
  regs_test testfile_aarch64_core <<\EOF
-@@ -2871,35 +2490,4 @@ x87 registers:
+@@ -2871,106 +2490,4 @@ x87 registers:
  	 40: %st7 (st7), float 80 bits
  EOF
  
@@ -1047,6 +1050,77 @@ index 7ddd452..0d2eb52 100755
 -	 21: %fp5 (fp5), float 96 bits
 -	 22: %fp6 (fp6), float 96 bits
 -	 23: %fp7 (fp7), float 96 bits
+-EOF
+-
+-# See run-readelf-mixed-corenote.sh for instructions to regenerate
+-# this core file.
+-regs_test testfile-riscv64-core <<\EOF
+-integer registers:
+-	  0: zero (zero), signed 64 bits
+-	  1: ra (ra), address 64 bits
+-	  2: sp (sp), address 64 bits
+-	  3: gp (gp), address 64 bits
+-	  4: tp (tp), address 64 bits
+-	  5: t0 (t0), signed 64 bits
+-	  6: t1 (t1), signed 64 bits
+-	  7: t2 (t2), signed 64 bits
+-	  8: s0 (s0), signed 64 bits
+-	  9: s1 (s1), signed 64 bits
+-	 10: a0 (a0), signed 64 bits
+-	 11: a1 (a1), signed 64 bits
+-	 12: a2 (a2), signed 64 bits
+-	 13: a3 (a3), signed 64 bits
+-	 14: a4 (a4), signed 64 bits
+-	 15: a5 (a5), signed 64 bits
+-	 16: a6 (a6), signed 64 bits
+-	 17: a7 (a7), signed 64 bits
+-	 18: s2 (s2), signed 64 bits
+-	 19: s3 (s3), signed 64 bits
+-	 20: s4 (s4), signed 64 bits
+-	 21: s5 (s5), signed 64 bits
+-	 22: s6 (s6), signed 64 bits
+-	 23: s7 (s7), signed 64 bits
+-	 24: s8 (s8), signed 64 bits
+-	 25: s9 (s9), signed 64 bits
+-	 26: s10 (s10), signed 64 bits
+-	 27: s11 (s11), signed 64 bits
+-	 28: t3 (t3), signed 64 bits
+-	 29: t4 (t4), signed 64 bits
+-	 30: t5 (t5), signed 64 bits
+-	 31: t6 (t6), signed 64 bits
+-FPU registers:
+-	 32: ft0 (ft0), float 64 bits
+-	 33: ft1 (ft1), float 64 bits
+-	 34: ft2 (ft2), float 64 bits
+-	 35: ft3 (ft3), float 64 bits
+-	 36: ft4 (ft4), float 64 bits
+-	 37: ft5 (ft5), float 64 bits
+-	 38: ft6 (ft6), float 64 bits
+-	 39: ft7 (ft7), float 64 bits
+-	 40: fs0 (fs0), float 64 bits
+-	 41: fs1 (fs1), float 64 bits
+-	 42: fa0 (fa0), float 64 bits
+-	 43: fa1 (fa1), float 64 bits
+-	 44: fa2 (fa2), float 64 bits
+-	 45: fa3 (fa3), float 64 bits
+-	 46: fa4 (fa4), float 64 bits
+-	 47: fa5 (fa5), float 64 bits
+-	 48: fa6 (fa6), float 64 bits
+-	 49: fa7 (fa7), float 64 bits
+-	 50: fs2 (fs2), float 64 bits
+-	 51: fs3 (fs3), float 64 bits
+-	 52: fs4 (fs4), float 64 bits
+-	 53: fs5 (fs5), float 64 bits
+-	 54: fs6 (fs6), float 64 bits
+-	 55: fs7 (fs7), float 64 bits
+-	 56: fs8 (fs8), float 64 bits
+-	 57: fs9 (fs9), float 64 bits
+-	 58: fs10 (fs10), float 64 bits
+-	 59: fs11 (fs11), float 64 bits
+-	 60: ft8 (ft8), float 64 bits
+-	 61: ft9 (ft9), float 64 bits
+-	 62: ft10 (ft10), float 64 bits
+-	 63: ft11 (ft11), float 64 bits
 -EOF
  exit 0
 diff --git a/tests/run-arextract.sh b/tests/run-arextract.sh
@@ -1186,7 +1260,7 @@ index b7432be..46e7a42 100755
  
  Object attributes section [ 4] '.gnu.attributes' of 16 bytes at offset 0x40:
 diff --git a/tests/run-readelf-mixed-corenote.sh b/tests/run-readelf-mixed-corenote.sh
-index 86171c4..382ea14 100755
+index 07cfc39..382ea14 100755
 --- a/tests/run-readelf-mixed-corenote.sh
 +++ b/tests/run-readelf-mixed-corenote.sh
 @@ -18,73 +18,6 @@
@@ -1263,7 +1337,7 @@ index 86171c4..382ea14 100755
  testfiles testfile67
  testrun_compare ${abs_top_builddir}/src/readelf -n testfile67 <<\EOF
  
-@@ -582,68 +515,4 @@ Note segment of 2548 bytes at offset 0x234:
+@@ -582,138 +515,4 @@ Note segment of 2548 bytes at offset 0x234:
    LINUX                832  X86_XSTATE
  EOF
  
@@ -1331,6 +1405,76 @@ index 86171c4..382ea14 100755
 -    fp6: 0x7fff0000ffffffffffffffff  fp7: 0x7fff0000ffffffffffffffff
 -EOF
 -
+-# To reproduce this core dump, do this on a riscv64 machine:
+-# $ gcc -x c <(echo 'int main () { return *(int *)0x12345678; }')
+-# $ ./a.out
+-testfiles testfile-riscv64-core
+-testrun_compare ${abs_top_builddir}/src/readelf -n testfile-riscv64-core <<\EOF
+-
+-Note segment of 1408 bytes at offset 0x388:
+-  Owner          Data size  Type
+-  CORE                 376  PRSTATUS
+-    info.si_signo: 11, info.si_code: 0, info.si_errno: 0, cursig: 11
+-    sigpend: <>
+-    sighold: <>
+-    pid: 6801, ppid: 1155, pgrp: 6801, sid: 1155
+-    utime: 0.000000, stime: 0.110000, cutime: 0.000000, cstime: 0.000000
+-    fpvalid: 0
+-    ra:    0x9a00000000000104  sp:    0x400000002000051c
+-    gp:    0x280000003fff9812  tp:    0xd000000000000128
+-    t0:   5764607523571106577  t1:   -432345563690696255
+-    t2:  -5764607522497362661  s0:   5764607523034235171
+-    s1:  -6629298650415654894  a0:     72057594037928196
+-    a1:  -6341068275337658368  a2:  -5188146769657096173
+-    a3:            1073715219  a4:   8646911284551352320
+-    a5:   8646911285625067538  a6:   1729382256911463510
+-    a7:             536876397  s2:  -1152921504606846976
+-    s3:   1152921505322686797  s4:             536871337
+-    s5:  -3458764513820540928  s6:  -9223372036138925403
+-    s7:             715843991  s8:  -2594073385365405696
+-    s9:   4611686019143218592  s10:            715850259
+-    s11:            715850393  t3:   -432345564227567616
+-    t4:    144115188075856379  t5:    216172782113783808
+-    t6:   1152921504606846976
+-  CORE                 136  PRPSINFO
+-    state: 0, sname: R, zomb: 0, nice: 0, flag: 0x0000000000400600
+-    uid: 0, gid: 0, pid: 6801, ppid: 1155, pgrp: 6801, sid: 1155
+-    fname: a.out, psargs: /tmp/a.out 
+-  CORE                 128  SIGINFO
+-    si_signo: 11, si_errno: 0, si_code: 1
+-    fault address: 0x12345678
+-  CORE                 288  AUXV
+-    SYSINFO_EHDR: 0x200001d000
+-    HWCAP: 0x1105
+-    PAGESZ: 4096
+-    CLKTCK: 100
+-    PHDR: 0x10040
+-    PHENT: 56
+-    PHNUM: 9
+-    BASE: 0x2000000000
+-    FLAGS: 0
+-    ENTRY: 0x103e0
+-    UID: 0
+-    EUID: 0
+-    GID: 0
+-    EGID: 0
+-    SECURE: 0
+-    RANDOM: 0x3fff9816d6
+-    EXECFN: 0x3fff981fed
+-    NULL
+-  CORE                 379  FILE
+-    9 files:
+-      00010000-00011000 00000000 4096                /tmp/a.out
+-      00011000-00012000 00000000 4096                /tmp/a.out
+-      00012000-00013000 00001000 4096                /tmp/a.out
+-      2000000000-200001a000 00000000 106496          /lib64/ld-2.27.so
+-      200001a000-200001b000 00019000 4096            /lib64/ld-2.27.so
+-      200001b000-200001c000 0001a000 4096            /lib64/ld-2.27.so
+-      2000032000-2000151000 00000000 1175552         /lib64/libc-2.27.so
+-      2000151000-2000155000 0011e000 16384           /lib64/libc-2.27.so
+-      2000155000-2000157000 00122000 8192            /lib64/libc-2.27.so
+-EOF
+-
  exit 0
 diff --git a/tests/run-strip-g.sh b/tests/run-strip-g.sh
 index 1303819..8024aa5 100755
@@ -1369,7 +1513,7 @@ index 1303819..8024aa5 100755
  testfiles testfileaarch64
  
 diff --git a/tests/run-strip-reloc.sh b/tests/run-strip-reloc.sh
-index b1c8534..5c847a4 100755
+index bbc9f58..caa7eb5 100755
 --- a/tests/run-strip-reloc.sh
 +++ b/tests/run-strip-reloc.sh
 @@ -18,7 +18,7 @@
@@ -1381,7 +1525,7 @@ index b1c8534..5c847a4 100755
  
  tempfiles readelf.out readelf.out1 readelf.out2
  tempfiles out.stripped1 out.debug1 out.stripped2 out.debug2
-@@ -102,8 +102,6 @@ runtest hello_x86_64.ko 1
+@@ -106,8 +106,6 @@ runtest hello_x86_64.ko 1
  runtest hello_ppc64.ko 1
  runtest hello_s390.ko 1
  runtest hello_aarch64.ko 1

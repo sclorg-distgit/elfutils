@@ -2,14 +2,14 @@
 
 Name: %{?scl_prefix}elfutils
 Summary: A collection of utilities and DSOs to handle ELF files and DWARF data
-Version: 0.173
+Version: 0.174
 %global baserelease 1
 URL: http://elfutils.org/
 %global source_url ftp://sourceware.org/pub/elfutils/%{version}/
 License: GPLv3+ and (GPLv2+ or LGPLv3+)
 Group: Development/Tools
 
-Release: %{baserelease}%{?dist}
+Release: %{baserelease}.bs1%{?dist}
 
 %global provide_yama_scope	0
 
@@ -33,7 +33,7 @@ Source7: libasm.a
 Patch1: elfutils-0.171-new-notes-hack.patch
 
 # DTS specific patches.
-Patch100: elfutils-0.173-dts.patch
+Patch100: elfutils-0.174-dts.patch
 Patch101: elfutils-dts-libs-version.patch
 
 Requires: %{?scl_prefix}elfutils-libelf%{depsuffix} = %{version}-%{release}
@@ -337,6 +337,16 @@ fi
 %endif
 
 %changelog
+* Fri Sep 14 2018 Mark Wielaard <mjw@redhat.com> - 0.174-1
+- New upstream release
+  - libelf, libdw and all tools now handle extended shnum and shstrndx
+    correctly
+  - elfcompress: Don't rewrite input file if no section data needs
+    updating.  Try harder to keep same file mode bits (suid) on rewrite.
+  - strip: Handle mixed (out of order) allocated/non-allocated sections.
+  - unstrip: Handle SHT_GROUP sections.
+  - Fixes CVE-2018-16062, CVE-2018-16402 and CVE-2018-16403.
+
 * Wed Jul  4 2018 Mark Wielaard <mjw@redhat.com> - 0.173-1
 - New upstream release
   - More fixes for crashes and hangs found by afl-fuzz. In particular
