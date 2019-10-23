@@ -1,0 +1,78 @@
+diff --git a/libasm/Makefile.am b/libasm/Makefile.am
+index fcc7ffc..60b8ed6 100644
+--- a/libasm/Makefile.am
++++ b/libasm/Makefile.am
+@@ -31,7 +31,7 @@ include $(top_srcdir)/config/eu.am
+ AM_CPPFLAGS += -I$(top_srcdir)/libelf -I$(top_srcdir)/libebl -I$(top_srcdir)/libdw -I$(top_srcdir)/libdwelf
+ 
+ GCC_INCLUDE = -I$(shell $(CC) -print-file-name=include)
+-VERSION = 1
++VERSION = dts.1
+ 
+ lib_LIBRARIES = libasm.a
+ noinst_LIBRARIES = libasm_pic.a
+diff --git a/libdw/Makefile.am b/libdw/Makefile.am
+index 166e37c..e291478 100644
+--- a/libdw/Makefile.am
++++ b/libdw/Makefile.am
+@@ -32,7 +32,7 @@ if BUILD_STATIC
+ AM_CFLAGS += $(fpic_CFLAGS)
+ endif
+ AM_CPPFLAGS += -I$(srcdir)/../libelf -I$(srcdir)/../libdwelf
+-VERSION = 1
++VERSION = dts.1
+ 
+ lib_LIBRARIES = libdw.a
+ noinst_LIBRARIES = libdw_pic.a libdw_static_pic.a
+diff --git a/libdwelf/Makefile.am b/libdwelf/Makefile.am
+index b526b7c..fbd51ba 100644
+--- a/libdwelf/Makefile.am
++++ b/libdwelf/Makefile.am
+@@ -32,7 +32,7 @@
+ include $(top_srcdir)/config/eu.am
+ AM_CPPFLAGS += -I$(srcdir)/../libelf -I$(srcdir)/../libdw \
+ 	       -I$(srcdir)/../libdwfl -I$(srcdir)/../libebl
+-VERSION = 1
++VERSION = dts.1
+ 
+ noinst_LIBRARIES = libdwelf.a libdwelf_pic.a
+ 
+diff --git a/libdwfl/Makefile.am b/libdwfl/Makefile.am
+index d9d13b2..3749b51 100644
+--- a/libdwfl/Makefile.am
++++ b/libdwfl/Makefile.am
+@@ -32,7 +32,7 @@
+ include $(top_srcdir)/config/eu.am
+ AM_CPPFLAGS += -I$(srcdir) -I$(srcdir)/../libelf -I$(srcdir)/../libebl \
+ 	   -I$(srcdir)/../libdw -I$(srcdir)/../libdwelf
+-VERSION = 1
++VERSION = dts.1
+ 
+ noinst_LIBRARIES = libdwfl.a
+ noinst_LIBRARIES += libdwfl_pic.a
+diff --git a/libebl/Makefile.am b/libebl/Makefile.am
+index ecebdd0..c411c70 100644
+--- a/libebl/Makefile.am
++++ b/libebl/Makefile.am
+@@ -30,7 +30,7 @@
+ include $(top_srcdir)/config/eu.am
+ AM_CFLAGS += $(fpic_CFLAGS)
+ AM_CPPFLAGS += -I$(srcdir)/../libelf -I$(srcdir)/../libdw -I$(srcdir)/../libasm
+-VERSION = 1
++VERSION = dts.1
+ LIBEBL_SUBDIR = @LIBEBL_SUBDIR@
+ 
+ lib_LIBRARIES = libebl.a
+diff --git a/libelf/Makefile.am b/libelf/Makefile.am
+index ba4e3eb..88ce633 100644
+--- a/libelf/Makefile.am
++++ b/libelf/Makefile.am
+@@ -32,7 +32,7 @@ if BUILD_STATIC
+ AM_CFLAGS += $(fpic_CFLAGS)
+ endif
+ GCC_INCLUDE = -I$(shell $(CC) -print-file-name=include)
+-VERSION = 1
++VERSION = dts.1
+ 
+ lib_LIBRARIES = libelf.a
+ noinst_LIBRARIES = libelf_pic.a

@@ -1,0 +1,15 @@
+diff --git a/config/eu.am b/config/eu.am
+index 82acda3..f2c5927 100644
+--- a/config/eu.am
++++ b/config/eu.am
+@@ -69,8 +69,8 @@ else
+ IMPLICIT_FALLTHROUGH_WARNING=
+ endif
+ 
+-AM_CFLAGS = -std=gnu99 -Wall -Wshadow -Wformat=2 \
+-	    -Wold-style-definition -Wstrict-prototypes -Wtrampolines \
++AM_CFLAGS = -std=gnu99 -Wall -Wformat=2 \
++	    -Wold-style-definition -Wstrict-prototypes \
+ 	    $(LOGICAL_OP_WARNING) $(DUPLICATED_COND_WARNING) \
+ 	    $(NULL_DEREFERENCE_WARNING) $(IMPLICIT_FALLTHROUGH_WARNING) \
+ 	    $(if $($(*F)_no_Werror),,-Werror) \
