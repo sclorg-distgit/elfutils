@@ -3,7 +3,7 @@
 Name: %{?scl_prefix}elfutils
 Summary: A collection of utilities and DSOs to handle ELF files and DWARF data
 Version: 0.176
-%global baserelease 4
+%global baserelease 5
 URL: http://elfutils.org/
 %global source_url ftp://sourceware.org/pub/elfutils/%{version}/
 License: GPLv3+ and (GPLv2+ or LGPLv3+)
@@ -33,6 +33,7 @@ Source7: libasm.a
 Patch1: elfutils-0.176-gcc-pr88835.patch
 Patch2: elfutils-0.176-xlate-note.patch
 Patch3: elfutils-0.176-elf-update.patch
+Patch4: elfutils-0.176-strip-symbols-illformed.patch
 
 # DTS specific patches.
 Patch100: elfutils-0.176-dts.patch
@@ -170,6 +171,7 @@ profiling) of processes.
 %patch1 -p1 -b .gcc-pr88835
 %patch2 -p1 -b .xlate-note
 %patch3 -p1 -b .elf-update
+%patch4 -p1 -b .strip-illformed
 
 
 # DTS specific patches
@@ -341,6 +343,9 @@ fi
 %endif
 
 %changelog
+* Fri Jul  5 2019 Mark Wielaard <mjw@redhat.com> - 0.176-5
+- Add elfutils-0.176-strip-symbols-illformed.patch
+
 * Fri Jun  7 2019 Mark Wielaard <mjw@redhat.com> - 0.176-4
 - Add elfutils-0.176-gcc-pr88835.patch
 - Add elfutils-0.176-xlate-note.patch
